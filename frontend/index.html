@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Registration</title>
+</head>
+<body>
+    <h2>Student Registration</h2>
+
+    <input type="text" id="name" placeholder="Name">
+    <input type="email" id="email" placeholder="Email">
+    <button onclick="addStudent()">Add Student</button>
+
+    <h3>Student List</h3>
+    <ul id="studentList"></ul>
+
+<script>
+const API_URL = "http://localhost:5000/students";
+
+// Add student
+function addStudent() {
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+
+    fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email })
+    })
+    .then(res => res.json())
+    .then(() => loadStudents());
+}
+
+// Load students
+function loadStudents() {
+    fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+            const list = document.getElementById("studentList");
+            list.innerHTML = "";
+            data.forEach(s => {
+                const li = document.createElement("li");
+                li.innerText = `${s.name} - ${s.email}`;
+                list.appendChild(li);
+            });
+        });
+}
+
+loadStudents();
+</script>
+</body>
+</html>
