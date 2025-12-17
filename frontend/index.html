@@ -1,52 +1,129 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Student Registration</title>
+    <title>Student Registration (JWT)</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        input { margin: 5px; }
+        button { margin: 5px; }
+    </style>
 </head>
 <body>
-    <h2>Student Registration</h2>
 
-    <input type="text" id="name" placeholder="Name">
-    <input type="email" id="email" placeholder="Email">
-    <button onclick="addStudent()">Add Student</button>
+<h2>🔐 Login</h2>
+<input type="email" id="loginEmail" placeholder="Email">
+<input type="password" id="loginPassword" placeholder="Password">
+<button onclick="login()">Login</button>
+<button onclick="register()">Register</button>
+<button onclick="logout()">Logout</button>
 
-    <h3>Student List</h3>
-    <ul id="studentList"></ul>
+<p id="authStatus"></p>
+
+<hr>
+
+<h2>🎓 Student Registration</h2>
+<input type="text" id="name" placeholder="Student Name">
+<input type="email" id="email" placeholder="Student Email">
+<button onclick="addStudent()">Add Student</button>
+
+<h3>Student List</h3>
+<ul id="studentList"></ul>
 
 <script>
-const API_URL = "https://student-backend-9kk5.onrender.com/students";
+const BACKEND_URL = "http://localhost:5000"; // change to Render URL later
+let token = "";
 
-// Add student
-function addStudent() {
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
+/* ---------------- AUTH ---------------- */
 
-    fetch(API_URL, {
+function register() {
+    fetch(`${BACKEND_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email })
+        body: JSON.stringify({
+            email: document.getElementById("loginEmail").value,
+            password: document.getElementById("loginPassword").value
+        })
     })
     .then(res => res.json())
-    .then(() => loadStudents());
+    .then(data => {
+        document.getElementById("authStatus").innerText = data.message;
+    });
 }
 
-// Load students
+function login() {
+    fetch(`${BACKEND_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            email: document.getElementById("loginEmail").value,
+            password: document.getElementById("loginPassword").value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.token) {
+            token = data.token;
+            document.getElementById("authStatus").innerText = "✅ Logged in";
+            loadStudents();
+        } else {
+            document.getElementById("authStatus").innerText = "❌ Login failed";
+        }
+    });
+}
+
+function logout() {
+    token = "";
+    document.getElementById("studentList").innerHTML = "";
+    document.getElementById("authStatus").innerText = "Logged out";
+}
+
+/* ---------------- STUDENTS ---------------- */
+
 function loadStudents() {
-    fetch(API_URL)
-        .then(res => res.json())
-        .then(data => {
-            const list = document.getElementById("studentList");
-            list.innerHTML = "";
-            data.forEach(s => {
-                const li = document.createElement("li");
-                li.innerText = `${s.name} - ${s.email}`;
-                list.appendChild(li);
-            });
+    fetch(`${BACKEND_URL}/students`, {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const list = document.getElementById("studentList");
+        list.innerHTML = "";
+        data.forEach(s => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              ${s.name} - ${s.email}
+              <button onclick="deleteStudent(${s.id})">Delete</button>
+            `;
+            list.appendChild(li);
         });
+    });
 }
 
-loadStudents();
+function addStudent() {
+    fetch(`${BACKEND_URL}/students`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value
+        })
+    }).then(() => loadStudents());
+}
+
+function deleteStudent(id) {
+    fetch(`${BACKEND_URL}/students/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    }).then(() => loadStudents());
+}
 </script>
+
 </body>
 </html>
 
