@@ -11,21 +11,6 @@ const SECRET_KEY = "mysecretkey"; // later move to .env
 app.use(cors());
 app.use(bodyParser.json());
 
-// <<<<<<< HEAD
-// // In-memory database
-// let students = [];
-// let idCounter = 1;
-
-// /* ------------------ GET ALL STUDENTS ------------------ */
-// app.get("/students", (req, res) => {
-//     res.json(students);
-// });
-
-// /* ------------------ ADD STUDENT ------------------ */
-// app.post("/students", (req, res) => {
-//     const student = {
-//         id: idCounter++,
-// =======
 // In-memory DB
 let users = [];
 let students = [];
@@ -97,23 +82,14 @@ app.get("/students", authenticateToken, (req, res) => {
 app.post("/students", authenticateToken, (req, res) => {
     const student = {
         id: studentId++,
-// >>>>>>> 39f8508 (Fix React casing issue, add JWT auth, clean gitignore)
         name: req.body.name,
         email: req.body.email
     };
     students.push(student);
-// <<<<<<< HEAD
-//     res.json({ message: "Student added", student });
-// });
-
-// /* ------------------ UPDATE STUDENT ------------------ */
-// app.put("/students/:id", (req, res) => {
-// =======
     res.json(student);
 });
 
 app.put("/students/:id", authenticateToken, (req, res) => {
-// >>>>>>> 39f8508 (Fix React casing issue, add JWT auth, clean gitignore)
     const id = parseInt(req.params.id);
     const student = students.find(s => s.id === id);
 
@@ -124,18 +100,10 @@ app.put("/students/:id", authenticateToken, (req, res) => {
     student.name = req.body.name;
     student.email = req.body.email;
 
-// <<<<<<< HEAD
-//     res.json({ message: "Student updated", student });
-// });
-
-// /* ------------------ DELETE STUDENT ------------------ */
-// app.delete("/students/:id", (req, res) => {
-// =======
     res.json({ message: "Student updated" });
 });
 
 app.delete("/students/:id", authenticateToken, (req, res) => {
-// >>>>>>> 39f8508 (Fix React casing issue, add JWT auth, clean gitignore)
     const id = parseInt(req.params.id);
     students = students.filter(s => s.id !== id);
     res.json({ message: "Student deleted" });
