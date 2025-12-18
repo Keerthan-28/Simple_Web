@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
@@ -8,10 +7,18 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = "mysecretkey"; // later move to .env
 
-app.use(cors());
-app.use(bodyParser.json());
+/* ---------------- MIDDLEWARE (ORDER MATTERS) ---------------- */
 
-// In-memory DB
+// 🔓 Enable CORS for all devices
+app.use(cors({
+    origin: "*"
+}));
+
+// 🔄 Built-in JSON parser (NO body-parser needed)
+app.use(express.json());
+
+/* ---------------- IN-MEMORY DATABASE ---------------- */
+
 let users = [];
 let students = [];
 let studentId = 1;
@@ -65,10 +72,14 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
 
-    if (!token) return res.status(401).json({ message: "Token required" });
+    if (!token) {
+        return res.status(401).json({ message: "Token required" });
+    }
 
     jwt.verify(token, SECRET_KEY, (err, user) => {
-        if (err) return res.status(403).json({ message: "Invalid token" });
+        if (err) {
+            return res.status(403).json({ message: "Invalid token" });
+        }
         req.user = user;
         next();
     });
@@ -109,6 +120,7 @@ app.delete("/students/:id", authenticateToken, (req, res) => {
     res.json({ message: "Student deleted" });
 });
 
+/* ---------------- START SERVER ---------------- */
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
